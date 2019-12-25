@@ -3,10 +3,10 @@ const router  = express.Router();
 const publish_controller = require('../controller/send');
 const consumer_controller = require('../controller/receive');
 
-router.post('/publish', (req, res, next)=>{
+router.post('/publisher', (req, res, next)=>{
 
-    let message = req.body.message;
-
+    let message = req.body;
+    
     res.status(200).json({
         message: `successfully received message :: ${message}`
     });
@@ -15,7 +15,7 @@ router.post('/publish', (req, res, next)=>{
 });
 
 router.get('/consumer', (res, req)=>{
-    consumer_controller.receiveMessage()
+    consumer_controller.receiveMessage("order-placed")
 })
 
 module.exports = router;

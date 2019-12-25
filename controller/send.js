@@ -1,14 +1,16 @@
-var amqp = require('amqplib/callback_api');
+const amqp = require('amqplib/callback_api');
+const logger = require('../logger');
 require('dotenv').config()
 
+const email = require('./email');
 var publisher = {
 
   sendorders: function (queue, orders) {
-    amqp.connect('amqp://test:test@mt.nodesense.ai', function (error0, connection) {
+    amqp.connect(process.env.CLOUDAMQP_URL, function (error0, connection) {
       if (error0) {
         throw error0;
       }
-      connection.createChannel(function (error1, channel) {
+      connection.createChannel(async function (error1, channel) {
         if (error1) {
           throw error1;
         }
@@ -17,25 +19,22 @@ var publisher = {
           durable: false
         });
 
-          const order_details= {
-            orderId: orders.orderId,
+          let order_details= {
+            orderId: orders._id,
             restaurantId: orders.restaurantId,
             quantity: orders.quantity,
             amount: orders.amount,
             city: orders.city,
-            orderDate: orders.date,
-            to: 'vishalswa@gmail.com',
-            subject: "Order placed",
-            body: orders
+            orderDate: new Date().toLocaleDateString('en-US')
           }
-          
-          channel.sendToQueue(queue, Buffer.from(order_details));
-          console.log(" [x] Sent %s", order_details);        
+
+          await email.sendEmail(order_details)
+          logger.info(" [x] Sent %s", order_details);
       });
       setTimeout(function () {
         connection.close();
         process.exit(0)
-      }, 500);
+      }, 15000);
     });
   }
 };
